@@ -1,0 +1,132 @@
+# supabase/config.toml
+#
+# Supabase CLI configuration for Zaujain.
+# Reference: https://supabase.com/docs/guides/local-development/cli/config
+#
+# This file is committed to version control.
+# Never put secrets here — use env() references or .env files.
+
+# A string used to distinguish different Supabase projects on the same host.
+# Defaults to the working directory name when running `supabase init`.
+project_id = "zaujain"
+
+# ─── API ──────────────────────────────────────────────────────────────────────
+
+[api]
+enabled = true
+# Port for the local Supabase API.
+port = 54321
+# Schemas exposed via the auto-generated REST and GraphQL APIs.
+schemas = ["public", "graphql_public"]
+# Extra schemas added to the search_path of every request.
+extra_search_path = ["public", "extensions"]
+# Maximum rows returned by a single REST request.
+max_rows = 1000
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+
+[db]
+# Port for the local PostgreSQL instance.
+port = 54322
+shadow_port = 54320
+# Must match your remote Supabase project's PostgreSQL major version.
+# Run `SHOW server_version;` on the remote DB to confirm.
+major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[db.seed]
+enabled = true
+# Seed data is managed via migration 20240101000010_seed.sql,
+# so no separate seed file is needed here.
+sql_paths = []
+
+# ─── Realtime ─────────────────────────────────────────────────────────────────
+
+[realtime]
+enabled = true
+
+# ─── Studio ───────────────────────────────────────────────────────────────────
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
+# DO NOT commit a real OpenAI key here. Use the env() reference.
+openai_api_key = "env(OPENAI_API_KEY)"
+
+# ─── Inbucket (local email testing) ───────────────────────────────────────────
+
+[local_smtp]
+enabled = true
+port = 54325
+
+[inbucket]
+enabled = true
+port = 54324
+pop3_port = 54326
+
+# ─── Storage ──────────────────────────────────────────────────────────────────
+
+[storage]
+enabled = true
+# Zaujain uses Cloudinary for all media; keep this conservative.
+file_size_limit = "50MiB"
+
+# ─── Auth ─────────────────────────────────────────────────────────────────────
+
+[auth]
+enabled = true
+# Base URL of your Next.js app. Used as allow-list for redirects.
+site_url = "http://localhost:3000"
+# All URLs auth providers may redirect to after authentication.
+additional_redirect_urls = [
+  "http://localhost:3000/auth/callback",
+  "https://zaujain.com",
+  "https://zaujain.com/auth/callback",
+]
+# JWT expiry in seconds (1 hour).
+jwt_expiry = 3600
+# Prevent refresh token reuse after expiry.
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+# Branded email templates (see supabase/templates/).
+template.confirmation.subject = "Confirm your Zaujain account"
+template.confirmation.content_path = "./supabase/templates/confirmation.html"
+template.recovery.subject = "Reset your Zaujain password"
+template.recovery.content_path = "./supabase/templates/recovery.html"
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+# ─── OAuth providers (uncomment when ready) ───────────────────────────────────
+
+# [auth.external.google]
+# enabled = true
+# client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+# secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
+# redirect_uri = ""
+
+# [auth.external.apple]
+# enabled = true
+# client_id = "env(SUPABASE_AUTH_APPLE_CLIENT_ID)"
+# secret = "env(SUPABASE_AUTH_APPLE_SECRET)"
+
+# ─── Edge Runtime ─────────────────────────────────────────────────────────────
+
+[edge_runtime]
+enabled = true
+# oneshot is recommended for local development.
+policy = "oneshot"
+inspector_port = 8083

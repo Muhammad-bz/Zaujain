@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirm your Zaujain account</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #faf8f5;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      max-width: 520px;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e8e2d9;
+      border-radius: 16px;
+      padding: 48px 40px;
+      text-align: center;
+    }
+    .seal {
+      width: 56px;
+      height: 56px;
+      background-color: #c4717a;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .seal span {
+      color: white;
+      font-size: 24px;
+      font-style: italic;
+      font-weight: 600;
+      line-height: 1;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 26px;
+      font-weight: 500;
+      color: #1c1917;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    p {
+      margin: 0 0 32px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #44403c;
+    }
+    .button {
+      display: inline-block;
+      background-color: #c4717a;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 36px;
+      border-radius: 9999px;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .footer {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #e8e2d9;
+    }
+    .footer p {
+      font-size: 13px;
+      color: #a89e94;
+      margin: 0;
+    }
+    .footer a {
+      color: #c4717a;
+      text-decoration: none;
+    }
+    .expiry {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #a89e94;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="seal"><span>Z</span></div>
+
+      <h1>Confirm your account</h1>
+
+      <p>
+        Welcome to Zaujain. Click the button below to confirm your email address
+        and start creating something beautiful for the people you love.
+      </p>
+
+      <a class="button" href="{{ .ConfirmationURL }}">
+        Confirm my account
+      </a>
+
+      <p class="expiry">This link expires in 24 hours.</p>
+
+      <div class="footer">
+        <p>
+          If you didn't create a Zaujain account, you can safely ignore this email.<br />
+          Questions? <a href="mailto:hello@zaujain.com">hello@zaujain.com</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
