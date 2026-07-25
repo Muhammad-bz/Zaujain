@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { updateExperience, publishExperience } from '../actions'
 import { cn } from '@/utils/cn'
 
@@ -26,7 +27,7 @@ interface Props {
   themes: Theme[]
 }
 
-type Section = 'details' | 'theme' | 'share'
+type Section = 'details' | 'theme' | 'features' | 'share'
 
 export function GiftEditor({ experience, themes }: Props) {
   const [activeSection, setActiveSection] = useState<Section>('details')
@@ -65,7 +66,29 @@ export function GiftEditor({ experience, themes }: Props) {
   const tabs: { id: Section; label: string }[] = [
     { id: 'details', label: 'Details' },
     { id: 'theme', label: 'Theme' },
+    { id: 'features', label: 'Features' },
     { id: 'share', label: 'Share' },
+  ]
+
+  const features = [
+    {
+      href: `/gift/${experience.slug}/memories`,
+      icon: '📸',
+      title: 'Memory Vault',
+      description: 'Add photos, letters, voice notes and drawings.',
+    },
+    {
+      href: `/gift/${experience.slug}/capsule`,
+      icon: '⏳',
+      title: 'Time Capsule',
+      description: 'Lock memories to open on a future date.',
+    },
+    {
+      href: `/gift/${experience.slug}/canvas`,
+      icon: '🎨',
+      title: 'Love Canvas',
+      description: 'Draw something from the heart.',
+    },
   ]
 
   return (
@@ -89,7 +112,7 @@ export function GiftEditor({ experience, themes }: Props) {
         ))}
       </div>
 
-      {/* Details section */}
+      {/* Details */}
       {activeSection === 'details' && (
         <form className="space-y-5" onSubmit={handleSave}>
           {error && (
@@ -97,7 +120,6 @@ export function GiftEditor({ experience, themes }: Props) {
               {error}
             </div>
           )}
-
           <div className="card rounded-2xl p-6 space-y-5">
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-ink" htmlFor="title">
@@ -113,7 +135,6 @@ export function GiftEditor({ experience, themes }: Props) {
                 type="text"
               />
             </div>
-
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-ink" htmlFor="welcomeMessage">
                 Welcome message
@@ -129,26 +150,22 @@ export function GiftEditor({ experience, themes }: Props) {
               />
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              className="flex items-center gap-2 rounded-full bg-rose px-6 py-2.5 text-sm font-medium text-white shadow-rose shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60"
-              disabled={isPending}
-              type="submit"
-            >
-              {isPending ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
-            </button>
-          </div>
+          <button
+            className="flex items-center gap-2 rounded-full bg-rose px-6 py-2.5 text-sm font-medium text-white shadow-rose shadow-sm transition-all hover:-translate-y-0.5 disabled:opacity-60"
+            disabled={isPending}
+            type="submit"
+          >
+            {isPending ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
+          </button>
         </form>
       )}
 
-      {/* Theme section */}
+      {/* Theme */}
       {activeSection === 'theme' && (
         <div className="space-y-5">
           <p className="text-sm text-ink-muted">
-            Choose a theme for your gift. This affects colours, animations, and the overall mood.
+            Choose a theme for your gift.
           </p>
-
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {themes.map((theme) => (
               <button
@@ -162,14 +179,12 @@ export function GiftEditor({ experience, themes }: Props) {
                 onClick={() => setSelectedThemeId(theme.id)}
                 type="button"
               >
-                {/* Theme preview swatch */}
                 <div className="mb-3 h-16 w-full rounded-xl bg-gradient-to-br from-surface to-parchment-deep" />
                 <p className="text-sm font-medium text-ink">{theme.name}</p>
                 <p className="text-xs text-muted capitalize">{theme.category}</p>
               </button>
             ))}
           </div>
-
           {selectedThemeId && selectedThemeId !== experience.theme_id && (
             <button
               className="rounded-full bg-rose px-6 py-2.5 text-sm font-medium text-white shadow-rose shadow-sm transition-all hover:-translate-y-0.5 disabled:opacity-60"
@@ -191,7 +206,32 @@ export function GiftEditor({ experience, themes }: Props) {
         </div>
       )}
 
-      {/* Share section */}
+      {/* Features */}
+      {activeSection === 'features' && (
+        <div className="space-y-4">
+          <p className="text-sm text-ink-muted">
+            Add content to make your gift unforgettable.
+          </p>
+          {features.map((feature) => (
+            <Link
+              className="card flex items-center gap-4 rounded-2xl p-5 transition-all hover:-translate-y-0.5"
+              href={feature.href}
+              key={feature.title}
+            >
+              <span className="text-3xl">{feature.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-ink">{feature.title}</p>
+                <p className="text-sm text-ink-muted">{feature.description}</p>
+              </div>
+              <svg className="h-4 w-4 shrink-0 text-muted" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Share */}
       {activeSection === 'share' && (
         <div className="space-y-6">
           <div className="card rounded-2xl p-6 space-y-3">
@@ -202,27 +242,20 @@ export function GiftEditor({ experience, themes }: Props) {
               </code>
               <button
                 className="shrink-0 rounded-lg border border-border px-3 py-2 text-xs text-ink-muted hover:border-rose/30 hover:text-rose transition-colors"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    `${window.location.origin}/us/${experience.slug}`
-                  )
-                }}
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/us/${experience.slug}`)}
                 type="button"
               >
                 Copy
               </button>
             </div>
-            <p className="text-xs text-muted">
-              Share this link with {experience.status === 'published' ? 'them when you\'re ready.' : 'them after you publish.'}
-            </p>
           </div>
 
-          {experience.status !== 'published' && (
+          {experience.status !== 'published' ? (
             <div className="card rounded-2xl p-6 space-y-4">
               <div>
                 <p className="text-sm font-medium text-ink">Ready to share?</p>
                 <p className="mt-1 text-sm text-ink-muted">
-                  Publishing makes your gift accessible to the recipient via the link above.
+                  Publishing makes your gift accessible to the recipient.
                 </p>
               </div>
               <button
@@ -234,9 +267,7 @@ export function GiftEditor({ experience, themes }: Props) {
                 {isPublishing ? 'Publishing…' : '🎁 Publish gift'}
               </button>
             </div>
-          )}
-
-          {experience.status === 'published' && (
+          ) : (
             <div className="rounded-xl border border-success/20 bg-success-light px-4 py-3 text-sm text-success">
               ✓ Your gift is published and ready to share.
             </div>
