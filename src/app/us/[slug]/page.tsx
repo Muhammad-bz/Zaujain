@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { formatDate, daysUntil, hasPassed } from '@/utils/dates'
+import { MemoryCard } from '@/features/memory-vault/components/MemoryCard'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -63,11 +64,6 @@ export default async function RecipientExperiencePage({ params }: Props) {
     .eq('experience_id', experience.id)
     .order('created_at', { ascending: false })
 
-  const MEMORY_ICONS: Record<string, string> = {
-    photo: '📸', letter: '💌', video: '🎥',
-    voice_note: '🎙️', drawing: '🎨', wallpaper: '🖼️',
-  }
-
   return (
     <main className="min-h-dvh bg-parchment">
       <div
@@ -81,7 +77,6 @@ export default async function RecipientExperiencePage({ params }: Props) {
       <div className="container-fluid relative z-10 py-16">
         <div className="mx-auto max-w-lg">
 
-          {/* Wax seal header */}
           <div className="mb-8 flex flex-col items-center text-center">
             <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-rose shadow-rose shadow-lg ring-4 ring-rose/20">
               <span className="font-display text-3xl font-semibold italic text-white/90">Z</span>
@@ -94,7 +89,6 @@ export default async function RecipientExperiencePage({ params }: Props) {
             </h1>
           </div>
 
-          {/* Welcome message */}
           {experience.welcome_message && (
             <div className="mb-8 rounded-2xl border border-border bg-surface-raised p-6 text-center shadow-card">
               <p className="font-display text-lg leading-relaxed text-ink-muted italic">
@@ -103,64 +97,20 @@ export default async function RecipientExperiencePage({ params }: Props) {
             </div>
           )}
 
-          {/* Memories */}
           {memories && memories.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-4 font-display text-2xl font-medium text-ink">
-                Memories
-              </h2>
+              <h2 className="mb-4 font-display text-2xl font-medium text-ink">Memories</h2>
               <div className="space-y-3">
                 {memories.map((memory) => (
-                  <div className="card rounded-2xl p-5" key={memory.id}>
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl shrink-0">
-                        {MEMORY_ICONS[memory.type] ?? '📝'}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        {memory.title && (
-                          <p className="font-medium text-ink">{memory.title}</p>
-                        )}
-                        {memory.description && (
-                          <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-                            {memory.description}
-                          </p>
-                        )}
-                        {memory.media_url && memory.type === 'photo' && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            alt={memory.title ?? 'Memory'}
-                            className="mt-3 w-full rounded-xl border border-border object-cover"
-                            src={memory.media_url}
-                            style={{ maxHeight: 300 }}
-                          />
-                        )}
-                        {memory.media_url && memory.type !== 'photo' && (
-                          <a
-                            className="mt-2 block text-xs text-rose hover:underline"
-                            href={memory.media_url}
-                            rel="noreferrer"
-                            target="_blank"
-                          >
-                            View media →
-                          </a>
-                        )}
-                        <p className="mt-2 text-xs text-muted capitalize">
-                          {memory.type.replace('_', ' ')} · {formatDate(memory.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <MemoryCard key={memory.id} memory={memory} />
                 ))}
               </div>
             </section>
           )}
 
-          {/* Love Canvas drawings */}
           {drawings && drawings.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-4 font-display text-2xl font-medium text-ink">
-                Love Canvas
-              </h2>
+              <h2 className="mb-4 font-display text-2xl font-medium text-ink">Love Canvas</h2>
               <div className="space-y-4">
                 {drawings.map((drawing) => (
                   <div className="card rounded-2xl overflow-hidden" key={drawing.id}>
@@ -183,12 +133,9 @@ export default async function RecipientExperiencePage({ params }: Props) {
             </section>
           )}
 
-          {/* Time Capsules */}
           {capsules && capsules.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-4 font-display text-2xl font-medium text-ink">
-                Time Capsules
-              </h2>
+              <h2 className="mb-4 font-display text-2xl font-medium text-ink">Time Capsules</h2>
               <div className="space-y-3">
                 {capsules.map((capsule) => {
                   const unlocked = hasPassed(capsule.unlock_date)
@@ -223,26 +170,18 @@ export default async function RecipientExperiencePage({ params }: Props) {
             </section>
           )}
 
-          {/* Empty state */}
           {(!memories || memories.length === 0) &&
            (!drawings || drawings.length === 0) &&
            (!capsules || capsules.length === 0) && (
             <div className="py-12 text-center">
-              <p className="font-display text-xl text-ink-muted">
-                Your gift is being prepared.
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                Check back soon — something beautiful is on its way.
-              </p>
+              <p className="font-display text-xl text-ink-muted">Your gift is being prepared.</p>
+              <p className="mt-1 text-sm text-muted">Check back soon — something beautiful is on its way.</p>
             </div>
           )}
 
-          {/* Footer */}
           <div className="mt-12 text-center">
             <p className="text-xs text-muted">
-              Made with{' '}
-              <span className="text-rose">♥</span>
-              {' '}using{' '}
+              Made with <span className="text-rose">♥</span>{' '}using{' '}
               <Link className="hover:underline" href="/">Zaujain</Link>
             </p>
           </div>
