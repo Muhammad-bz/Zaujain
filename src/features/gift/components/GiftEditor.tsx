@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { updateExperience, publishExperience } from '../actions'
+import { PinSetup } from './PinSetup'
 import { cn } from '@/utils/cn'
 
 interface Theme {
@@ -19,6 +20,7 @@ interface Experience {
   cover_image: string | null
   theme_id: string | null
   status: string
+  pin_hash: string | null
   theme?: { id: string; name: string } | null
 }
 
@@ -27,7 +29,7 @@ interface Props {
   themes: Theme[]
 }
 
-type Section = 'details' | 'theme' | 'features' | 'share'
+type Section = 'details' | 'theme' | 'pin' | 'features' | 'share'
 
 export function GiftEditor({ experience, themes }: Props) {
   const [activeSection, setActiveSection] = useState<Section>('details')
@@ -35,9 +37,7 @@ export function GiftEditor({ experience, themes }: Props) {
   const [isPublishing, startPublishing] = useTransition()
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [selectedThemeId, setSelectedThemeId] = useState(
-    experience.theme_id ?? ''
-  )
+  const [selectedThemeId, setSelectedThemeId] = useState(experience.theme_id ?? '')
 
   function handleSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -48,57 +48,37 @@ export function GiftEditor({ experience, themes }: Props) {
 
     startTransition(async () => {
       const result = await updateExperience(experience.slug, formData)
-      if (result?.error) {
-        setError(result.error)
-      } else {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
-      }
+      if (result?.error) setError(result.error)
+      else { setSaved(true); setTimeout(() => setSaved(false), 3000) }
     })
   }
 
   function handlePublish() {
-    startPublishing(async () => {
-      await publishExperience(experience.slug)
-    })
+    startPublishing(async () => { await publishExperience(experience.slug) })
   }
 
   const tabs: { id: Section; label: string }[] = [
     { id: 'details', label: 'Details' },
     { id: 'theme', label: 'Theme' },
+    { id: 'pin', label: 'PIN' },
     { id: 'features', label: 'Features' },
     { id: 'share', label: 'Share' },
   ]
 
   const features = [
-    {
-      href: `/gift/${experience.slug}/memories`,
-      icon: '📸',
-      title: 'Memory Vault',
-      description: 'Add photos, letters, voice notes and drawings.',
-    },
-    {
-      href: `/gift/${experience.slug}/capsule`,
-      icon: '⏳',
-      title: 'Time Capsule',
-      description: 'Lock memories to open on a future date.',
-    },
-    {
-      href: `/gift/${experience.slug}/canvas`,
-      icon: '🎨',
-      title: 'Love Canvas',
-      description: 'Draw something from the heart.',
-    },
+    { href: `/gift/${experience.slug}/memories`, icon: '📸', title: 'Memory Vault', description: 'Add photos, letters, voice notes and drawings.' },
+    { href: `/gift/${experience.slug}/capsule`, icon: '⏳', title: 'Time Capsule', description: 'Lock memories to open on a future date.' },
+    { href: `/gift/${experience.slug}/canvas`, icon: '🎨', title: 'Love Canvas', description: 'Draw something from the heart.' },
   ]
 
   return (
     <div className="mx-auto max-w-2xl">
       {/* Tabs */}
-      <div className="mb-8 flex gap-1 rounded-xl bg-surface p-1">
+      <div className="mb-8 grid grid-cols-5 gap-1 rounded-xl bg-surface p-1">
         {tabs.map((tab) => (
           <button
             className={cn(
-              'flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-150',
+              'rounded-lg py-2 text-xs font-medium transition-all duration-150 sm:text-sm',
               activeSection === tab.id
                 ? 'bg-surface-raised text-ink shadow-sm'
                 : 'text-ink-muted hover:text-ink'
@@ -116,38 +96,16 @@ export function GiftEditor({ experience, themes }: Props) {
       {activeSection === 'details' && (
         <form className="space-y-5" onSubmit={handleSave}>
           {error && (
-            <div className="rounded-xl border border-error/20 bg-error-light px-4 py-3 text-sm text-error">
-              {error}
-            </div>
+            <div className="rounded-xl border border-error/20 bg-error-light px-4 py-3 text-sm text-error">{error}</div>
           )}
           <div className="card rounded-2xl p-6 space-y-5">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-ink" htmlFor="title">
-                Gift title
-              </label>
-              <input
-                className="input-base"
-                defaultValue={experience.title}
-                id="title"
-                maxLength={80}
-                name="title"
-                required
-                type="text"
-              />
+              <label className="block text-sm font-medium text-ink" htmlFor="title">Gift title</label>
+              <input className="input-base" defaultValue={experience.title} id="title" maxLength={80} name="title" required type="text" />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-ink" htmlFor="welcomeMessage">
-                Welcome message
-              </label>
-              <textarea
-                className="input-base resize-none"
-                defaultValue={experience.welcome_message ?? ''}
-                id="welcomeMessage"
-                maxLength={500}
-                name="welcomeMessage"
-                placeholder="Write something warm for when they open your gift…"
-                rows={5}
-              />
+              <label className="block text-sm font-medium text-ink" htmlFor="welcomeMessage">Welcome message</label>
+              <textarea className="input-base resize-none" defaultValue={experience.welcome_message ?? ''} id="welcomeMessage" maxLength={500} name="welcomeMessage" placeholder="Write something warm for when they open your gift…" rows={5} />
             </div>
           </div>
           <button
@@ -163,17 +121,13 @@ export function GiftEditor({ experience, themes }: Props) {
       {/* Theme */}
       {activeSection === 'theme' && (
         <div className="space-y-5">
-          <p className="text-sm text-ink-muted">
-            Choose a theme for your gift.
-          </p>
+          <p className="text-sm text-ink-muted">Choose a theme for your gift.</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {themes.map((theme) => (
               <button
                 className={cn(
                   'rounded-2xl border-2 p-4 text-left transition-all duration-150',
-                  selectedThemeId === theme.id
-                    ? 'border-rose bg-rose-light'
-                    : 'border-border bg-surface-raised hover:border-rose/40'
+                  selectedThemeId === theme.id ? 'border-rose bg-rose-light' : 'border-border bg-surface-raised hover:border-rose/40'
                 )}
                 key={theme.id}
                 onClick={() => setSelectedThemeId(theme.id)}
@@ -206,12 +160,20 @@ export function GiftEditor({ experience, themes }: Props) {
         </div>
       )}
 
+      {/* PIN */}
+      {activeSection === 'pin' && (
+        <div className="space-y-4">
+          <p className="text-sm text-ink-muted">
+            Set a PIN so your recipient can open the gift. Share it with them privately — they'll need it every time they visit for the first time on a new device.
+          </p>
+          <PinSetup hasPin={!!experience.pin_hash} slug={experience.slug} />
+        </div>
+      )}
+
       {/* Features */}
       {activeSection === 'features' && (
         <div className="space-y-4">
-          <p className="text-sm text-ink-muted">
-            Add content to make your gift unforgettable.
-          </p>
+          <p className="text-sm text-ink-muted">Add content to make your gift unforgettable.</p>
           {features.map((feature) => (
             <Link
               className="card flex items-center gap-4 rounded-2xl p-5 transition-all hover:-translate-y-0.5"
@@ -248,15 +210,18 @@ export function GiftEditor({ experience, themes }: Props) {
                 Copy
               </button>
             </div>
+            {!experience.pin_hash && (
+              <p className="text-xs text-warning">
+                ⚠️ Set a PIN first so your recipient can open the gift.
+              </p>
+            )}
           </div>
 
           {experience.status !== 'published' ? (
             <div className="card rounded-2xl p-6 space-y-4">
               <div>
                 <p className="text-sm font-medium text-ink">Ready to share?</p>
-                <p className="mt-1 text-sm text-ink-muted">
-                  Publishing makes your gift accessible to the recipient.
-                </p>
+                <p className="mt-1 text-sm text-ink-muted">Publishing makes your gift accessible to the recipient.</p>
               </div>
               <button
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-rose px-6 py-3 text-sm font-medium text-white shadow-rose shadow-sm transition-all hover:-translate-y-0.5 disabled:opacity-60"

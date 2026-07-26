@@ -1,12 +1,19 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { createHash } from 'crypto'
 import Link from 'next/link'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { formatDate, daysUntil, hasPassed } from '@/utils/dates'
 import { MemoryCard } from '@/features/memory-vault/components/MemoryCard'
+import { PinEntry } from '@/features/gift/components/PinEntry'
 
 interface Props {
   params: Promise<{ slug: string }>
+}
+
+function hashPin(pin: string, slug: string): string {
+  return createHash('sha256').update(`${pin}-${slug}-zaujain`).digest('hex')
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -46,6 +53,27 @@ export default async function RecipientExperiencePage({ params }: Props) {
     .eq('id', experience.owner_id)
     .single()
 
+  // Check if creator is viewing (skip PIN)
+  const { data: { user } } = await supabase.auth.getUser()
+  const isOwner = user?.id === experience.owner_id
+
+  // Check PIN cookie
+  const cookieStore = await cookies()
+  const pinCookie = cookieStore.get(`gift_pin_${slug}`)
+  const pinVerified = pinCookie?.value === experience.pin_hash
+
+  // Show PIN entry if gift has a PIN and user is not owner and not verified
+  if (experience.pin_hash && !isOwner && !pinVerified) {
+    return (
+      <PinEntry
+        giftTitle={experience.title}
+        ownerName={owner?.name ?? 'someone special'}
+        slug={slug}
+      />
+    )
+  }
+
+  // Fetch all content
   const { data: memories } = await supabase
     .from('memories')
     .select('*')
@@ -70,7 +98,7 @@ export default async function RecipientExperiencePage({ params }: Props) {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0"
         style={{
-          background: `radial-gradient(ellipse 80% 60% at 50% -20%, rgba(196,113,122,0.15) 0%, transparent 70%)`,
+          background: 'radial-gradient(ellipse 80% 60% at 50% -20%, rgba(196,113,122,0.15) 0%, transparent 70%)',
         }}
       />
 
@@ -115,16 +143,10 @@ export default async function RecipientExperiencePage({ params }: Props) {
                 {drawings.map((drawing) => (
                   <div className="card rounded-2xl overflow-hidden" key={drawing.id}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      alt="Drawing"
-                      className="w-full border-b border-border"
-                      src={drawing.cloudinary_url}
-                    />
+                    <img alt="Drawing" className="w-full border-b border-border" src={drawing.cloudinary_url} />
                     {drawing.note && (
                       <div className="p-4">
-                        <p className="text-sm text-ink-muted italic">
-                          &ldquo;{drawing.note}&rdquo;
-                        </p>
+                        <p className="text-sm text-ink-muted italic">&ldquo;{drawing.note}&rdquo;</p>
                       </div>
                     )}
                   </div>
@@ -147,9 +169,7 @@ export default async function RecipientExperiencePage({ params }: Props) {
                         <div className="flex-1">
                           <p className="font-medium text-ink">{capsule.title}</p>
                           {unlocked && capsule.message && (
-                            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-                              {capsule.message}
-                            </p>
+                            <p className="mt-2 text-sm leading-relaxed text-ink-muted">{capsule.message}</p>
                           )}
                           {!unlocked && (
                             <p className="mt-1 text-sm text-muted italic">
