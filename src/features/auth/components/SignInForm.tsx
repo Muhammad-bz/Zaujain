@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from '../actions'
 import {
   AuthCard,
@@ -16,9 +16,9 @@ import {
 export function SignInForm() {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Show error if redirected here after failed email confirmation
   const urlError = searchParams.get('error')
   const confirmationError =
     urlError === 'confirmation_failed'
@@ -29,10 +29,14 @@ export function SignInForm() {
     event.preventDefault()
     setError(null)
     const formData = new FormData(event.currentTarget)
+
     startTransition(async () => {
       const result = await signIn(formData)
       if (result?.error) {
         setError(result.error)
+      } else {
+        router.push('/dashboard')
+        router.refresh()
       }
     })
   }

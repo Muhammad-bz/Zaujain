@@ -10,8 +10,6 @@ import {
   resetPasswordSchema,
 } from '@/utils/validation'
 
-// ─── Sign Up ──────────────────────────────────────────────────────────────────
-
 export async function signUp(formData: FormData) {
   const raw = {
     name: formData.get('name') as string,
@@ -21,9 +19,7 @@ export async function signUp(formData: FormData) {
   }
 
   const result = signUpSchema.safeParse(raw)
-  if (!result.success) {
-    return { error: result.error.issues[0].message }
-  }
+  if (!result.success) return { error: result.error.issues[0].message }
 
   const supabase = await createServerComponentClient()
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
@@ -50,8 +46,6 @@ export async function signUp(formData: FormData) {
   }
 }
 
-// ─── Sign In ──────────────────────────────────────────────────────────────────
-
 export async function signIn(formData: FormData) {
   const raw = {
     email: formData.get('email') as string,
@@ -59,9 +53,7 @@ export async function signIn(formData: FormData) {
   }
 
   const result = signInSchema.safeParse(raw)
-  if (!result.success) {
-    return { error: result.error.issues[0].message }
-  }
+  if (!result.success) return { error: result.error.issues[0].message }
 
   const supabase = await createServerComponentClient()
 
@@ -81,10 +73,8 @@ export async function signIn(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  return { success: true }
 }
-
-// ─── Sign Out ─────────────────────────────────────────────────────────────────
 
 export async function signOut() {
   const supabase = await createServerComponentClient()
@@ -93,15 +83,10 @@ export async function signOut() {
   redirect('/')
 }
 
-// ─── Forgot Password ──────────────────────────────────────────────────────────
-
 export async function forgotPassword(formData: FormData) {
   const raw = { email: formData.get('email') as string }
-
   const result = forgotPasswordSchema.safeParse(raw)
-  if (!result.success) {
-    return { error: result.error.issues[0].message }
-  }
+  if (!result.success) return { error: result.error.issues[0].message }
 
   const supabase = await createServerComponentClient()
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
@@ -110,18 +95,13 @@ export async function forgotPassword(formData: FormData) {
     redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
   })
 
-  if (error) {
-    return { error: error.message }
-  }
+  if (error) return { error: error.message }
 
-  // Always return success to prevent email enumeration
   return {
     success: true,
     message: "If an account exists for that email, we've sent a password reset link.",
   }
 }
-
-// ─── Reset Password ───────────────────────────────────────────────────────────
 
 export async function resetPassword(formData: FormData) {
   const raw = {
@@ -130,19 +110,12 @@ export async function resetPassword(formData: FormData) {
   }
 
   const result = resetPasswordSchema.safeParse(raw)
-  if (!result.success) {
-    return { error: result.error.issues[0].message }
-  }
+  if (!result.success) return { error: result.error.issues[0].message }
 
   const supabase = await createServerComponentClient()
+  const { error } = await supabase.auth.updateUser({ password: result.data.password })
 
-  const { error } = await supabase.auth.updateUser({
-    password: result.data.password,
-  })
-
-  if (error) {
-    return { error: error.message }
-  }
+  if (error) return { error: error.message }
 
   revalidatePath('/', 'layout')
   redirect('/dashboard')
